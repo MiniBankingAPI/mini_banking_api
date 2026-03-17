@@ -7,7 +7,7 @@ class SaldoController
     public function get_balance(Request $request, Response $response, $args){
 
         $id = $args['idAccount'];
-
+      // Saldo = Sommadepositi - Sommaprelievi =  sum(amount)
         $mysqli_connection = new MySQLi('my_mariadb', 'root', 'hotpeppers', 'bank');
         $result = $mysqli_connection->query("SELECT * FROM transactions WHERE account_id = '$id'");
         $results = $result->fetch_all(MYSQLI_ASSOC);

@@ -17,6 +17,4 @@ class MovimentiController
     return $response->withHeader("Content-type", "application/json")->withStatus(200);
   }
 
-  
-
 }
