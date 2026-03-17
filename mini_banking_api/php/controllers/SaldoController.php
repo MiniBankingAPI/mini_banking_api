@@ -4,5 +4,16 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 
 class SaldoController
 {
+    public function get_balance(Request $request, Response $response, $args){
+
+        $id = $args['idAccount'];
+
+        $mysqli_connection = new MySQLi('my_mariadb', 'root', 'hotpeppers', 'bank');
+        $result = $mysqli_connection->query("SELECT * FROM transactions WHERE account_id = '$id'");
+        $results = $result->fetch_all(MYSQLI_ASSOC);
+
+        $response->getBody()->write(json_encode($results));
+        return $response->withHeader("Content-type", "application/json")->withStatus(200);
+    }
 
 }

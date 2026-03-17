@@ -4,26 +4,19 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 
 class MovimentiController
 {
-  public function index(Request $request, Response $response, $args){
-    $mysqli_connection = new MySQLi('my_mariadb', 'root', 'ciccio', 'scuola');
-    $result = $mysqli_connection->query("SELECT * FROM alunni");
-    $results = $result->fetch_all(MYSQLI_ASSOC);
 
-    $response->getBody()->write(json_encode($results));
-    return $response->withHeader("Content-type", "application/json")->withStatus(200);
-  }
-
-  public function list_movemets(Request $request, Response $response, $args){
+  public function list_movements(Request $request, Response $response, $args){
 
     $id = $args['idAccount'];
 
     $mysqli_connection = new MySQLi('my_mariadb', 'root', 'hotpeppers', 'bank');
-    $result = $mysqli_connection->query("SELECT * FROM transactions WHERE id = $id");
+    $result = $mysqli_connection->query("SELECT * FROM transactions WHERE account_id = '$id'");
     $results = $result->fetch_all(MYSQLI_ASSOC);
 
     $response->getBody()->write(json_encode($results));
     return $response->withHeader("Content-type", "application/json")->withStatus(200);
   }
 
+  
 
 }
