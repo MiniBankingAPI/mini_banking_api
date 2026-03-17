@@ -34,16 +34,3 @@ services:
     environment:
       - PMA_HOST=my_mariadb
 
-  my_node:
-    user: ${MY_UID}:${MY_GID}
-    build:
-      context: ./build
-      dockerfile: Dockerfile.node
-      args:
-        UID: ${MY_UID}
-        GID: ${MY_GID}
-    ports:
-      - 3000:3000
-    volumes:
-      - "./app:/app"
-
