@@ -10,7 +10,7 @@ require __DIR__ . '/controllers/AlunniController.php';
 $app = AppFactory::create();
 
 //Movimenti
-$app->get('/accounts/1/transactions', "MovimentiController:list_movemets");
+$app->get('/accounts/{idAccount}/transactions', "MovimentiController:list_movemets");
 $app->get('/accounts/1/transactions/5', "MovimentiController:details_movement");
 $app->post('/accounts/1/deposits', "MovimentiController:register_deposit");
 $app->post('/accounts/1/withdrawals', "MovimentiController:register_");
