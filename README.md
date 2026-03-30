@@ -36,6 +36,7 @@ curl http://localhost:8080/accounts/1/transactions
 **Ottiene i dettagli specifici di un singolo movimento (es. ID 5)
 ```bash
 curl http://localhost:8080/accounts/1/transactions/5
+```
 
 **Registra un nuovo deposito di 1000€ sull'account 1
 ```bash
@@ -50,7 +51,8 @@ Modifica solo la descrizione del movimento con ID 5
 curl -X PUT http://localhost:8080/accounts/1/transactions/5 -d '{"description": "Nuova descrizione"}' -H "Content-Type: application/json"
 Elimina definitivamente il movimento con ID 5
 curl -X DELETE http://localhost:8080/accounts/1/transactions/5
-2. Saldo e Conversioni
+```
+## 2. Saldo e Conversioni
 Calcola e restituisce il saldo attuale dell'account 1 (Depositi - Prelievi)
 curl http://localhost:8080/accounts/1/balance
 Converte il saldo attuale in Dollari (USD) usando l'API Frankfurter
