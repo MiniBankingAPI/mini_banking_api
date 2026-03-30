@@ -13,7 +13,6 @@ CREATE TABLE `transactions` (
   `amount` DECIMAL(10, 2) NOT NULL,
   `type` ENUM('deposit', 'withdrawal') NOT NULL,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  `balance_after` DECIMAL(10,2) NOT NULL,
   PRIMARY KEY (`id`),
   FOREIGN KEY (`account_id`) REFERENCES `accounts`(`id`) ON DELETE CASCADE,
   CHECK (amount > 0)

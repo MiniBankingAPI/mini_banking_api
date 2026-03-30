@@ -16,7 +16,7 @@ $app->get('/accounts/{idAccount}/transactions', "MovimentiController:list_moveme
 $app->get('/accounts/{idAccount}/transactions/{idTransaction}', "MovimentiController:details_movement");
 $app->post('/accounts/{idAccount}/deposits', "MovimentiController:register_deposit");
 $app->post('/accounts/{idAccount}/withdrawals', "MovimentiController:register_withdrawal");
-$app->put('/accounts/{idAccount}/transactions/{idTransaction}', "MovimentiController:modify_movement_descripsion");
+$app->put('/accounts/{idAccount}/transactions/{idTransaction}', "MovimentiController:modify_movement_description");
 $app->delete('/accounts/{idAccount}/transactions/{idTransaction}', "MovimentiController:eliminate_movement");
 
 // Saldo

@@ -4,7 +4,7 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 
 class MovimentiController
 {
-  private $dataBase;
+
   private function get_data() {
         return new MySQLi('my_mariadb', 'root', 'hotpeppers', 'bank');
     }
@@ -54,15 +54,66 @@ class MovimentiController
 
     if($importo <= 0){
       $response->getBody()->write(json_encode(["ERRORE!" => "L'importo deve essere maggiore di zero"]));
-      return $response->withHeader("Content-type", "application/json")->withStatus(400);
+      return $response->withHeader("Content-type", "application/json")->withStatus(422);
     }
 
-    $stmt = $mysqli->prepare("INSERT INTO transictions (account_id, type, amount, description) VALUES (?, 'deposito', ?, ?)");
+    $stmt = $mysqli->prepare("INSERT INTO transactions (`account_id`, `type`, `amount`, `description`) VALUES (?, 'deposit', ?, ?)");
     $stmt->bind_param("ids", $id, $importo, $descrizione);
-    $stmt->execute();
 
-    $response->getBody()->write(json_encode(["message" => "Deposito registrato"]));
-    return $response->withHeader("Content-type", "application/json")->withStatus(201);
+     if ($stmt->execute()) {
+        $response->getBody()->write(json_encode(["message" => "Prelievo effettuato"]));
+        return $response->withHeader("Content-type", "application/json")->withStatus(201);
+    } else {
+          var_dump($stmt);
+
+        $response->getBody()->write(json_encode(["error" => "Errore durante l'operazione"]));
+        return $response->withStatus(502);
+    }
   }
 
+  // POST /accounts/{idAccount}/withdrawals
+  public function register_withdrawal(Request $request, Response $response, $args){
+
+    $mysqli = $this->get_data();
+
+    $id = $args['idAccount'];
+    $body = json_decode($request->getBody(), true);
+    $importo = $body['amount'] ?? 0;
+    $descrizione = $body['descriprion'] ?? 'nessuna descrizione sul prelievo';
+
+    if($importo <= 0){
+      $response->getBody()->write(json_encode(["ERRORE!" => "L'importo deve essere maggiore di zero"]));
+      return $response->withHeader("Content-type", "application/json")->withStatus(422);
+    }
+
+    $stmt = $mysqli->prepare("SELECT amount FROM transactions WHERE account_id = ?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+    $saldo_attuale = $row['saldo'] ?? 0;
+
+    if($saldo_attuale > $importo){
+
+      $response->getBody()->write(json_encode(["ERRORE!" => "L'importo richiesto non può essere superiore del saldo disponibile"]));
+      return $response->withHeader("Content-type", "Application/json")->withStatus(422);
+    }
+
+    $stmt = $mysqli->prepare("INSERT INTO transactions ('account_id', 'type', 'amount', 'description') VALUES (?, 'withdrawal', ?, ?)");
+    $importoDaRimuovere = -$importo;
+    $stmt->bind_param("ids", $id, $importoDaRimuovere, $descrizione);
+    
+     if ($stmt->execute()) {
+        $response->getBody()->write(json_encode(["message" => "Prelievo effettuato"]));
+        return $response->withHeader("Content-type", "application/json")->withStatus(201);
+    } else {
+          var_dump($stmt);
+
+        $response->getBody()->write(json_encode(["error" => "Errore durante l'operazione"]));
+        return $response->withStatus(502);
+    }
+    
+  }
 }
+
+
