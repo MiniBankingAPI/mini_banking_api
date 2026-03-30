@@ -22,6 +22,8 @@ CREATE TABLE `transactions` (
   FOREIGN KEY (`account_id`) REFERENCES `accounts`(`id`) ON DELETE CASCADE
 );
 
+```
+
 ## 🚦 Comandi CURL per il Test
 1. Gestione Movimenti
 Ottiene la lista completa di tutti i movimenti dell'account 1
