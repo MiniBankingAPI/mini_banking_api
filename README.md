@@ -25,11 +25,23 @@ CREATE TABLE `transactions` (
 ```
 
 ## 🚦 Comandi CURL per il Test
-1. Gestione Movimenti
-Ottiene la lista completa di tutti i movimenti dell'account 1
+
+### 1. Gestione Movimenti
+
+**Ottiene la lista completa di tutti i movimenti dell'account 1**
+```bash
 curl http://localhost:8080/accounts/1/transactions
-Ottiene i dettagli specifici di un singolo movimento (es. ID 5)
+
+```
+**Ottiene i dettagli specifici di un singolo movimento (es. ID 5)
+```bash
 curl http://localhost:8080/accounts/1/transactions/5
+
+**Registra un nuovo deposito di 1000€ sull'account 1
+```bash
+curl http://localhost:8080/accounts/1/transactions/5
+
+
 Registra un nuovo deposito di 1000€ sull'account 1
 curl -X POST http://localhost:8080/accounts/1/deposits -d '{"amount": 1000.0, "description": "Stipendio"}' -H "Content-Type: application/json"
 Registra un prelievo di 50€ dall'account 1
