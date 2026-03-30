@@ -57,7 +57,7 @@ class MovimentiController
       return $response->withHeader("Content-type", "application/json")->withStatus(400);
     }
 
-    $stmt = $mysqli->prepare("INSERT INTO transictions (account_id, type, amount, description) VALUES (?, 'deposito', ?, ?)");
+    $stmt = $mysqli->prepare("INSERT INTO transactions (account_id, type, amount, description) VALUES (?, 'deposito', ?, ?)");
     $stmt->bind_param("ids", $id, $importo, $descrizione);
     $stmt->execute();
 
