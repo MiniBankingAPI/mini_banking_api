@@ -8,17 +8,21 @@ class SaldoController
         return new MySQLi('my_mariadb', 'root', 'hotpeppers', 'bank');
     }
 
-    //GET /accounts/1/balance per ottenere il saldo attuale
+    // GET /accounts/{idAccount}/balance
     public function get_balance(Request $request, Response $response, $args){
+        $mysqli = $this->get_data();
+        $id = (int)$args['idAccount'];
 
-        $mysqli_connection = $this->get_data();
+        // controllo esistenza conto
+        $check = $mysqli->query("SELECT id FROM accounts WHERE id = $id");
+        if ($check->num_rows === 0) {
+            $response->getBody()->write(json_encode(['error' => 'Account not found']));
+            return $response->withHeader("Content-type", "application/json")->withStatus(404);
+        }
 
-        $id = $args['idAccount'];
-        // Saldo = Sommadepositi - Sommaprelievi =  sum(amount)
-        $result = $mysqli_connection->query("SELECT SUM(CASE WHEN type = 'deposit' THEN amount ELSE -amount END) as balance FROM transactions WHERE account_id = '$id'");
-
+        $result = $mysqli->query("SELECT SUM(CASE WHEN type = 'deposit' THEN amount ELSE -amount END) as balance FROM transactions WHERE account_id = $id");
         $row = $result->fetch_assoc();
-        $balance = $row['balance'] ?? 0.00;
+        $balance = (float)($row['balance'] ?? 0.00);
 
         $response->getBody()->write(json_encode([
             'account_id' => $id,
@@ -27,80 +31,117 @@ class SaldoController
         return $response->withHeader("Content-type", "application/json")->withStatus(200);
     }
 
-
-    // GET /accounts/1/balance/convert/fiat?to=USD per convertire il saldo in una valuta fiat - /accounts/{idAccount}/balance/convert/fiat
+    // GET /accounts/{idAccount}/balance/convert/fiat?to=USD
     public function convert_to_fiat(Request $request, Response $response, $args){
-
-        $id = $args['idAccount'];
-        // Saldo = Sommadepositi - Sommaprelievi =  sum(amount)
-        $mysqli_connection = $this->get_data();
+        $id = (int)$args['idAccount'];
+        $mysqli = $this->get_data();
         
-        // per recuperare il parametro to dalla query string (?to=USD)
         $params = $request->getQueryParams();
-        $to_currency = strtoupper($params['to'] ?? 'EUR');
+        $to = strtoupper($params['to'] ?? '');
 
-        // per calcoalre il saldo
-        $result =  $mysqli_connection->query("SELECT SUM(CASE WHEN type = 'deposit' THEN amount ELSE -amount END) as balance FROM transactions WHERE account_id = '$id'");
-        $row = $result->fetch_assoc();
-        $balance = (float)($row['balance'] ?? 0.0);
+        if (!$to) {
+            $response->getBody()->write(json_encode(['error' => 'Missing target currency']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+        }
 
-        // logica di conversione
-        $rates = [
-            'USD' => 1.08,
-            'GBP' => 0.85,
-            'JPY' => 163.50
-        ];
+        // recupero valuta base del conto
+        $stmt = $mysqli->prepare('SELECT currency FROM accounts WHERE id = ?');
+        $stmt->bind_param('i', $id);
+        $stmt->execute();
+        $acc = $stmt->get_result()->fetch_assoc();
 
-        $rate = $rates[$to_currency] ?? 1.0; //default 1:1 se la valuta non è in lista
-        $converted_balance = $balance * $rate;
+        if (!$acc) {
+            $response->getBody()->write(json_encode(['error' => 'Account not found']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+        }
+        $from = strtoupper($acc['currency']);
 
-        $data = [
-            'account_id' => (int)$id,
+        // calcolo saldo
+        $res = $mysqli->query("SELECT SUM(CASE WHEN type = 'deposit' THEN amount ELSE -amount END) as balance FROM transactions WHERE account_id = $id");
+        $balance = (float)($res->fetch_assoc()['balance'] ?? 0);
+
+        // chiamata reale a Frankfurter
+        $url = "https://api.frankfurter.dev{$from}&symbols={$to}";
+        $json = @file_get_contents($url);
+
+        if ($json === false) {
+            $response->getBody()->write(json_encode(['error' => 'Exchange API unavailable or invalid currency']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(502);
+        }
+
+        $data = json_decode($json, true);
+        $rate = (float)($data['rates'][$to] ?? 0);
+
+        if (!$rate) {
+            $response->getBody()->write(json_encode(['error' => 'Currency not supported']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+        }
+
+        $response->getBody()->write(json_encode([
+            'account_id' => $id,
+            'provider' => 'Frankfurter',
+            'conversion_type' => 'fiat',
+            'from_currency' => $from,
+            'to_currency' => $to,
             'original_balance' => $balance,
-            'currency' => 'EUR',
-            'converted_balance' => round($converted_balance, 2),
-            'target_currency' => $to_currency
-        ];
-
-        $response->getBody()->write(json_encode($data));
+            'rate' => $rate,
+            'converted_balance' => round($balance * $rate, 2),
+            'date' => $data['date']
+        ]));
         return $response->withHeader("Content-type", "application/json")->withStatus(200);
     }
-    // GET /accounts/1/balance/convert/crypto?to=BTC per convertire il saldo in una criptovaluta - /accounts/{idAccount}/balance/convert/crypto
-    public function convert_to_crypto(Request $request, Response $response, $args){
-        $id = $args['idAccount'];
-        $mysqli_connection = $this->get_data();
 
-        // per recuperare la crypto di destinazione (?to=BTC)
+    // GET /accounts/{idAccount}/balance/convert/crypto?to=BTC
+    public function convert_to_crypto(Request $request, Response $response, $args) {
+        $id = (int)$args['idAccount'];
+        $mysqli = $this->get_data();
+        
         $params = $request->getQueryParams();
-        $to_crypto = strtoupper($params['to'] ?? 'BTC');
+        $to = strtoupper($params['to'] ?? '');
 
-        // calcolo del saldo
-        $query = "SELECT SUM(CASE WHEN type = 'deposit' THEN amount ELSE -amount END) as balance FROM transactions WHERE account_id = '$id'";
-        $result = $mysqli_connection->query($query);
-        $row = $result->fetch_assoc();
-        $balance = (float)($row['balance'] ?? 0.0);
+        if (!$to) {
+            $response->getBody()->write(json_encode(['error' => 'Missing target crypto']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+        }
 
-        //tassi di cambio delle crypto per 1 EUR
+        $stmt = $mysqli->prepare('SELECT currency FROM accounts WHERE id = ?');
+        $stmt->bind_param('i', $id);
+        $stmt->execute();
+        $acc = $stmt->get_result()->fetch_assoc();
 
-        $crypto_rates = [
-            'BTC' => 0.000016,  
-            'ETH' => 0.00032,   
-            'SOL' => 0.0075     
-        ];
+        if (!$acc) {
+            $response->getBody()->write(json_encode(['error' => 'Account not found']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+        }
+        $from = strtoupper($acc['currency']);
 
-        $rate = $crypto_rates[$to_crypto] ?? 0.0;
-        $converted_balance = $balance * $rate;
+        $res = $mysqli->query("SELECT SUM(CASE WHEN type = 'deposit' THEN amount ELSE -amount END) as balance FROM transactions WHERE account_id = $id");
+        $balance = (float)($res->fetch_assoc()['balance'] ?? 0);
 
-        $data = [
-            'account_id' => (int)$id,
-            'original_balance_eur' => $balance,
-            'converted_balance' => $converted_balance,
-            'crypto_currency' => $to_crypto,
-            'rate_applied' => $rate
-        ];
+        // costruzione Market Symbol Binance: CRYPTO + FIAT (es. BTCEUR)
+        $marketSymbol = $to . $from;
+        $url = "https://api.binance.com" . $marketSymbol;
+        $json = @file_get_contents($url);
 
-        $response->getBody()->write(json_encode($data));
-        return $response->withHeader("Content-type", "application/json")->withStatus(200);
+        if ($json === false) {
+            $response->getBody()->write(json_encode(['error' => "Market pair {$marketSymbol} not supported on Binance"]));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(502);
+        }
 
+        $data = json_decode($json, true);
+        $price = (float)($data['price'] ?? 0);
+
+        $response->getBody()->write(json_encode([
+            'account_id' => $id,
+            'provider' => 'Binance',
+            'conversion_type' => 'crypto',
+            'from_currency' => $from,
+            'to_crypto' => $to,
+            'market_symbol' => $marketSymbol,
+            'original_balance' => $balance,
+            'price' => $price,
+            'converted_amount' => ($price > 0) ? round($balance / $price, 8) : 0
+        ]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     }
 }
