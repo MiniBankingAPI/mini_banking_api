@@ -9,7 +9,7 @@ class MovimentiController
         return new MySQLi('my_mariadb', 'root', 'hotpeppers', 'bank');
     }
 
-  // GET /accounts/{idAccount}/transactions
+  // ? GET /accounts/{idAccount}/transactions
   public function list_movements(Request $request, Response $response, $args){
 
     $mysqli = $this->get_data();
@@ -24,7 +24,7 @@ class MovimentiController
     return $response->withHeader("Content-type", "application/json")->withStatus(200);
   }
 
-  // GET /accounts/{idAccount}/transactions/{idTransaction}
+  // ? GET /accounts/{idAccount}/transactions/{idTransaction}
   public function details_movement(Request $request, Response $response, $args){
 
     $mysqli = $this->get_data();
@@ -42,7 +42,7 @@ class MovimentiController
 
   }
 
-  // POST /accounts/{idAccount}/deposits
+  // ? POST /accounts/{idAccount}/deposits
   public function register_deposit(Request $request, Response $response, $args){
 
     $mysqli = $this->get_data();
@@ -71,7 +71,7 @@ class MovimentiController
     }
   }
 
-  // POST /accounts/{idAccount}/withdrawals
+  // ? POST /accounts/{idAccount}/withdrawals
   public function register_withdrawal(Request $request, Response $response, $args){
 
     $mysqli = $this->get_data();
@@ -114,6 +114,27 @@ class MovimentiController
     }
     
   }
+
+  // ? PUT /accounts/{idAccount}/transactions/{idTransaction}
+  public function modify_movement_description(Request $request, Response $response, array $args){
+
+    $mysqli = $this->get_data();
+    $idAccount = $args["idAccount"];
+    $idTransaction = $args["idTransaction"];
+
+    $body = json_decode($request->getBody(), true);
+    $newDescrizione= $body["description"] ?? null;
+
+    if(!$newDescrizione){
+      $response->getBody()->write(json_encode(["ERRORE:"=> "Descrizione da aggiornare mancante alla richiesta"]));
+      return $response->withHeader("Content-type, ", "application/json")->withStatus(400);
+    }
+
+    $stmt = $mysqli->prepare("UPDATE transactions SET description = ? WHERE id = ? AND account_id = ?");
+    $stmt->bind_param("sii", $newDescrizione, $idTransaction, $idAccount);
+    
+  }
+
 }
 
 
