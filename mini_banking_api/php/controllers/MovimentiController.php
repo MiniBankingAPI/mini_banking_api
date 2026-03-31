@@ -104,10 +104,9 @@ class MovimentiController
     $stmt->bind_param("ids", $id, $importoDaRimuovere, $descrizione);
     
      if ($stmt->execute()) {
-        $response->getBody()->write(json_encode(["message" => "Prelievo effettuato"]));
+        $response->getBody()->write(json_encode(["message:" => "Prelievo effettuato"]));
         return $response->withHeader("Content-type", "application/json")->withStatus(201);
     } else {
-          var_dump($stmt);
 
         $response->getBody()->write(json_encode(["error" => "Errore durante l'operazione"]));
         return $response->withStatus(502);
@@ -116,14 +115,14 @@ class MovimentiController
   }
 
   // ? PUT /accounts/{idAccount}/transactions/{idTransaction}
-  public function modify_movement_description(Request $request, Response $response, array $args){
+  public function modify_movement_description(Request $request, Response $response, $args){
 
     $mysqli = $this->get_data();
     $idAccount = $args["idAccount"];
     $idTransaction = $args["idTransaction"];
 
     $body = json_decode($request->getBody(), true);
-    $newDescrizione= $body["description"] ?? null;
+    $newDescrizione = $body["description"] ?? null;
 
     if(!$newDescrizione){
       $response->getBody()->write(json_encode(["ERRORE:"=> "Descrizione da aggiornare mancante alla richiesta"]));
@@ -132,9 +131,39 @@ class MovimentiController
 
     $stmt = $mysqli->prepare("UPDATE transactions SET description = ? WHERE id = ? AND account_id = ?");
     $stmt->bind_param("sii", $newDescrizione, $idTransaction, $idAccount);
+
+    if ($stmt->execute()) {
+        $response->getBody()->write(json_encode(["message:" => "Descrizione aggiornata"]));
+        return $response->withHeader("Content-type", "application/json")->withStatus(201);
+    } else {
+
+        $response->getBody()->write(json_encode(["ERRORE:" => "Errore durante l'operazione"]));
+        return $response->withStatus(502);
+    }
     
   }
+
+
+  // DELETE /accounts/{idAccount}/transactions/{idTransaction}
+  public function delete_movement_description(Request $request, Response $response, $args){
+    
+    $mysqli = $this->get_data();
+    $idAccount = $args["idAccount"];
+    $idTransaction = $args["idTransaction"];
+
+    $stmt = $mysqli->prepare("DELETE FROM transactions WHERE id = ? AND account_id = ?");
+    $stmt->bind_param("ii", $idTransaction, $idAccount);
+
+    if ($stmt->execute()) {
+        $response->getBody()->write(json_encode(["message:" => "Transazione eliminata con successo"]));
+        return $response->withHeader("Content-type", "application/json")->withStatus(201);
+    } else {
+
+        $response->getBody()->write(json_encode(["ERRORE:" => "Errore durante l'operazione"]));
+        return $response->withStatus(502);
+    }
 
 }
 
 
+}
