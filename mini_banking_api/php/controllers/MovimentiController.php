@@ -6,8 +6,8 @@ class MovimentiController
 {
 
   private function get_data() {
-        return new MySQLi('my_mariadb', 'root', 'hotpeppers', 'bank');
-    }
+    return @new MySQLi('my_mariadb', 'root', 'hotpeppers', 'bank');
+  }
 
   // ? GET /accounts/{idAccount}/transactions
   public function list_movements(Request $request, Response $response, $args){
@@ -142,7 +142,6 @@ class MovimentiController
     }
     
   }
-
 
   // DELETE /accounts/{idAccount}/transactions/{idTransaction}
   public function delete_movement_description(Request $request, Response $response, $args){
