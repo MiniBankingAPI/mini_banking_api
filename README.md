@@ -1,22 +1,22 @@
 # Mini Banking API
+API RESTful per la gestione di conti e movimenti con conversioni in tempo reale.
 
-API RESTful per la gestione di conti e movimenti con conversioni in tempo reale (Binance & Frankfurter).
-
-## 🛠️ Schema Database
-Eseguire queste query nel database `bank` prima di testare:
+## 🛠️ Setup Database
+Eseguire queste query per inizializzare il database `bank`:
 
 ```sql
 CREATE TABLE `accounts` (
   `id` INT PRIMARY KEY AUTO_INCREMENT,
   `owner_name` VARCHAR(255) NOT NULL,
-  `currency` CHAR(3) DEFAULT 'EUR'
+  `currency` CHAR(3) NOT NULL DEFAULT 'EUR',
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE `transactions` (
   `id` INT PRIMARY KEY AUTO_INCREMENT,
   `account_id` INT NOT NULL,
   `description` VARCHAR(255),
-  `amount` DECIMAL(10, 2) NOT NULL,
+  `amount` DECIMAL(10, 2) NOT NULL CHECK (amount > 0),
   `type` ENUM('deposit', 'withdrawal') NOT NULL,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (`account_id`) REFERENCES `accounts`(`id`) ON DELETE CASCADE
@@ -47,7 +47,7 @@ curl http://localhost:8080/accounts/1/transactions/5
 
 **Registra un nuovo deposito di 1000€ sull'account 1**
 ```bash
-curl http://localhost:8080/accounts/1/transactions/5
+curl -X POST http://localhost:8080/accounts/1/deposits -d '{"amount": 1000, "description": "Bonus"}' -H "Content-Type: application/json"
 ```
 **Registra un prelievo di 50€ dall'account 1**
 ```bash
