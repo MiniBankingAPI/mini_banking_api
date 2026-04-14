@@ -9,7 +9,7 @@ class SaldoController
     }
 
     // GET /accounts/{idAccount}/balance
-    public function get_balance(Request $request, Response $response, $args){
+    public function index(Request $request, Response $response, $args){
         $mysqli = $this->get_data();
         $accountId = (int)$args['idAccount']; 
 
