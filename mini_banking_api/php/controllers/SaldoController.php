@@ -154,25 +154,17 @@ class SaldoController
         $balance = (float)($stmt->get_result()->fetch_assoc()['balance'] ?? 0);
 
         $marketSymbol = $to . $from; 
-        $url = "https://binance.com/api/v3/ticker/price?symbol=" . $marketSymbol;
+        $url = "https://api.binance.com/api/v3/ticker/price?symbol=" . $marketSymbol;
         
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0'); 
-        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-        
-        $json = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
+        $json = @file_get_contents($url);
 
-
+        if ($json === false) {
             $response->getBody()->write(json_encode([
                 'error' => "Market pair {$marketSymbol} not supported on Binance",
                 'url_tested' => $url 
             ]));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(502);
-        
+        }
 
         $data = json_decode($json, true);
         $price = (float)($data['price'] ?? 0);
@@ -197,6 +189,7 @@ class SaldoController
         ]));
 
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+    
     }
 
 
