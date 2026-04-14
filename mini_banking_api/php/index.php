@@ -12,15 +12,15 @@ require __DIR__ . '/controllers/SaldoController.php';
 $app = AppFactory::create();
 
 // Movimenti
-$app->get('/accounts/{idAccount}/transactions', "MovimentiController:list_movements");
-$app->get('/accounts/{idAccount}/transactions/{idTransaction}', "MovimentiController:details_movement");
-$app->post('/accounts/{idAccount}/deposits', "MovimentiController:register_deposit");
-$app->post('/accounts/{idAccount}/withdrawals', "MovimentiController:register_withdrawal");
-$app->put('/accounts/{idAccount}/transactions/{idTransaction}', "MovimentiController:modify_movement_description");
-$app->delete('/accounts/{idAccount}/transactions/{idTransaction}', "MovimentiController:eliminate_movement");
+$app->get('/accounts/{idAccount}/transactions', "MovimentiController:index");
+$app->get('/accounts/{idAccount}/transactions/{idTransaction}', "MovimentiController:show");
+$app->post('/accounts/{idAccount}/deposits', "MovimentiController:create");
+$app->post('/accounts/{idAccount}/withdrawals', "MovimentiController:remove");
+$app->put('/accounts/{idAccount}/transactions/{idTransaction}', "MovimentiController:update");
+$app->delete('/accounts/{idAccount}/transactions/{idTransaction}', "MovimentiController:destroy");
 
 // Saldo
-$app->get('/accounts/{idAccount}/balance', "SaldoController:get_balance");
+$app->get('/accounts/{idAccount}/balance', "SaldoController:index");
 
 // Conversione del saldo
 $app->get('/accounts/{idAccount}/balance/convert/fiat', "SaldoController:convert_to_fiat");
