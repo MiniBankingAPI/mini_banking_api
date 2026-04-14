@@ -33,7 +33,7 @@ class SaldoController
 
     // GET /accounts/{idAccount}/balance/convert/fiat?to=USD
     public function convert_to_fiat(Request $request, Response $response, $args){
-        $accountId = (int)$args['idAccount'];
+        $accountId = $args['idAccount'];
         $mysqli = $this->get_data(); 
         $params = $request->getQueryParams();
         $to = strtoupper($params['to'] ?? '');
@@ -75,7 +75,7 @@ class SaldoController
         $stmt->execute();
         $result = $stmt->get_result();
         $row = $result->fetch_assoc();
-        $balance = (float)($row['balance'] ?? 0);
+        $balance = $row['balance'] ?? 0;
 
         $url = "https://api.frankfurter.dev/v1/latest?base={$from}&symbols={$to}";
         $json = @file_get_contents($url);
@@ -100,7 +100,7 @@ class SaldoController
                 ->withStatus(400);
         }
 
-        $rate = (float)$data['rates'][$to];
+        $rate = $data['rates'][$to];
         $converted = round($balance * $rate, 2);
 
         $response->getBody()->write(json_encode([
@@ -121,7 +121,7 @@ class SaldoController
     // GET /accounts/{idAccount}/balance/convert/crypto?to=BTC
     public function convert_to_crypto(Request $request, Response $response, $args) {
         $mysqli = $this->get_data();
-        $accountId = (int)($args['idAccount'] ?? 0);
+        $accountId = $args['idAccount'] ?? 0;
         
         $params = $request->getQueryParams();
         $to = strtoupper($params['to'] ?? '');
@@ -151,7 +151,7 @@ class SaldoController
         ");
         $stmt->bind_param('i', $accountId);
         $stmt->execute();
-        $balance = (float)($stmt->get_result()->fetch_assoc()['balance'] ?? 0);
+        $balance = $stmt->get_result()->fetch_assoc()['balance'] ?? 0;
 
         $marketSymbol = $to . $from; 
         $url = "https://api.binance.com/api/v3/ticker/price?symbol=" . $marketSymbol;
@@ -167,7 +167,7 @@ class SaldoController
         }
 
         $data = json_decode($json, true);
-        $price = (float)($data['price'] ?? 0);
+        $price = $data['price'] ?? 0;
 
         if ($price <= 0) {
             $response->getBody()->write(json_encode(['error' => 'Invalid price from Binance']));
