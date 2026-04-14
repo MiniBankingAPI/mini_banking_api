@@ -31,7 +31,7 @@ MY_UID=$(id -u) MY_GID=$(id -g) docker-compose up
 
 ```
 
-## 🚦 Comandi CURL per il Test
+##  Comandi CURL per il Test
 
 ### 1. Gestione Movimenti
 
