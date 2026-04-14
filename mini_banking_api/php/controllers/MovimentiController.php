@@ -10,7 +10,7 @@ class MovimentiController
   }
 
   // ? GET /accounts/{idAccount}/transactions
-  public function list_movements(Request $request, Response $response, $args){
+  public function index(Request $request, Response $response, $args){
 
     $mysqli = $this->get_data();
 
@@ -32,7 +32,7 @@ class MovimentiController
   }
 
   // ? GET /accounts/{idAccount}/transactions/{idTransaction}
-  public function details_movement(Request $request, Response $response, $args){
+  public function show(Request $request, Response $response, $args){
 
     $mysqli = $this->get_data();
 
@@ -57,7 +57,7 @@ class MovimentiController
   }
 
   // ? POST /accounts/{idAccount}/deposits
-  public function register_deposit(Request $request, Response $response, $args){
+  public function create(Request $request, Response $response, $args){
 
     $mysqli = $this->get_data();
 
@@ -86,7 +86,7 @@ class MovimentiController
   }
 
   // ? POST /accounts/{idAccount}/withdrawals
-  public function register_withdrawal(Request $request, Response $response, $args){
+  public function remove(Request $request, Response $response, $args){
 
     $mysqli = $this->get_data();
 
@@ -129,7 +129,7 @@ class MovimentiController
   }
 
   // ? PUT /accounts/{idAccount}/transactions/{idTransaction}
-  public function modify_movement_description(Request $request, Response $response, $args){
+  public function update(Request $request, Response $response, $args){
 
     $mysqli = $this->get_data();
     $idAccount = $args["idAccount"];
@@ -158,7 +158,7 @@ class MovimentiController
   }
 
   // DELETE /accounts/{idAccount}/transactions/{idTransaction}
-  public function eliminate_movement(Request $request, Response $response, $args){
+  public function destroy(Request $request, Response $response, $args){
     
     $mysqli = $this->get_data();
     $idAccount = $args["idAccount"];
