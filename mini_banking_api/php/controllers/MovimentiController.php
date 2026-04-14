@@ -20,6 +20,13 @@ class MovimentiController
     $stmt->execute();
     $results = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
+    if($result->num_rows === 0){
+
+      $response->getBody()->write(json_encode("ERRORE: nessun movimento trovato per questo account"));
+      return $response->withHeader("Content-type", "application/json")->withStatus(404);
+
+    }
+
     $response->getBody()->write(json_encode($results));
     return $response->withHeader("Content-type", "application/json")->withStatus(200);
   }
@@ -36,6 +43,13 @@ class MovimentiController
     $stmt->bind_param("ii", $idTrans, $id);
     $stmt->execute();
     $results = $stmt->get_result()->fetch_assoc();
+
+    if(!$results){
+
+      $response->getBody()->write(json_encode("ERRORE: movimento non trovato"));
+      return $response->withHeader("Content-type", "application/json")->withStatus(404);
+
+    }
 
     $response->getBody()->write(json_encode($results));
     return $response->withHeader("Content-type", "application/json")->withStatus(200);
@@ -144,7 +158,7 @@ class MovimentiController
   }
 
   // DELETE /accounts/{idAccount}/transactions/{idTransaction}
-  public function delete_movement_description(Request $request, Response $response, $args){
+  public function eliminate_movement(Request $request, Response $response, $args){
     
     $mysqli = $this->get_data();
     $idAccount = $args["idAccount"];
