@@ -21,7 +21,7 @@ CREATE TABLE `transactions` (
 INSERT INTO `accounts` (`owner_name`, `currency`) VALUES
 ('Mario Rossi', 'EUR');
 
-INSERT INTO `transactions` (`account_id`, `type`, `amount`, `description`, `balance_after`) VALUES
+INSERT INTO `transactions` (`account_id`, `type`, `amount`, `description`) VALUES
 (1, 'deposit', 1000.00, 'Deposito iniziale', 1000.00),
 (1, 'withdrawal', 200.00, 'Spesa supermercato', 800.00),
 (1, 'deposit', 500.00, 'Stipendio', 1300.00),
