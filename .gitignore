@@ -1,0 +1,4 @@
+vendor/
+.env
+mysql/
+node_modules/

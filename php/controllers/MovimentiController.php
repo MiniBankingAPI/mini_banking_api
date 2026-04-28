@@ -2,17 +2,20 @@
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
+require_once __DIR__ . '/../methods/MovimentiMethods.php';
+
 class MovimentiController
 {
-
-  private function get_data() {
-    return @new MySQLi('my_mariadb', 'root', 'hotpeppers', 'bank');
+  private $mysqli;
+  
+  public function __construct(){
+    $this->mysqli =  new MovimentiMethods();
   }
 
   // ? GET /accounts/{idAccount}/transactions
   public function index(Request $request, Response $response, $args){
 
-    $mysqli = $this->get_data();
+    $this->mysqli->getConnection();
 
     $id = $args['idAccount'];
     $stmt = $mysqli->prepare("SELECT * FROM transactions WHERE account_id = ?");
@@ -33,9 +36,7 @@ class MovimentiController
 
   // ? GET /accounts/{idAccount}/transactions/{idTransaction}
   public function show(Request $request, Response $response, $args){
-
-    $mysqli = $this->get_data();
-
+    $this->mysqli->getConnection();
     $id = $args['idAccount'];
     $idTrans = $args['idTransaction'];
 
@@ -59,8 +60,7 @@ class MovimentiController
   // ? POST /accounts/{idAccount}/deposits
   public function create(Request $request, Response $response, $args){
 
-    $mysqli = $this->get_data();
-
+    $this->mysqli->getConnection();
     $id = $args['idAccount'];
     $body = json_decode($request->getBody(), true);
     $importo = $body['amount'] ?? 0;
@@ -88,7 +88,7 @@ class MovimentiController
   // ? POST /accounts/{idAccount}/withdrawals
   public function remove(Request $request, Response $response, $args){
 
-    $mysqli = $this->get_data();
+    $this->mysqli->getConnection();
 
     $id = $args['idAccount'];
     $body = json_decode($request->getBody(), true);
@@ -131,7 +131,7 @@ class MovimentiController
   // ? PUT /accounts/{idAccount}/transactions/{idTransaction}
   public function update(Request $request, Response $response, $args){
 
-    $mysqli = $this->get_data();
+    $this->mysqli->getConnection();
     $idAccount = $args["idAccount"];
     $idTransaction = $args["idTransaction"];
 
@@ -159,8 +159,9 @@ class MovimentiController
 
   // DELETE /accounts/{idAccount}/transactions/{idTransaction}
   public function destroy(Request $request, Response $response, $args){
+
+    $this->mysqli->getConnection();
     
-    $mysqli = $this->get_data();
     $idAccount = $args["idAccount"];
     $idTransaction = $args["idTransaction"];
 

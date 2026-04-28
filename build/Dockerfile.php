@@ -1,4 +1,4 @@
-FROM php:7.4-apache
+FROM php:8.3-apache
 ARG UID
 ARG GID
 RUN apt-get update; apt-get install unzip git -y
